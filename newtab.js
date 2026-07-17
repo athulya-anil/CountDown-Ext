@@ -1,38 +1,5 @@
 const DEFAULT_ACCENT = '#7c6ef2';
 
-const QUOTES = [
-  { text: "The secret of getting ahead is getting started.", author: "Mark Twain" },
-  { text: "It always seems impossible until it's done.", author: "Nelson Mandela" },
-  { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
-  { text: "You are never too old to set another goal or to dream a new dream.", author: "C.S. Lewis" },
-  { text: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
-  { text: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
-  { text: "Act as if what you do makes a difference. It does.", author: "William James" },
-  { text: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
-  { text: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
-  { text: "You miss 100% of the shots you don't take.", author: "Wayne Gretzky" },
-  { text: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford" },
-  { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
-  { text: "In the middle of every difficulty lies opportunity.", author: "Albert Einstein" },
-  { text: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
-  { text: "Everything you've ever wanted is on the other side of fear.", author: "George Addair" },
-  { text: "Dream big and dare to fail.", author: "Norman Vaughan" },
-  { text: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
-  { text: "Spread love everywhere you go.", author: "Mother Teresa" },
-  { text: "Do not go where the path may lead; go instead where there is no path and leave a trail.", author: "Ralph Waldo Emerson" },
-  { text: "You will face many defeats in life, but never let yourself be defeated.", author: "Maya Angelou" },
-  { text: "In the end, it's not the years in your life that count. It's the life in your years.", author: "Abraham Lincoln" },
-  { text: "Never let the fear of striking out keep you from playing the game.", author: "Babe Ruth" },
-  { text: "Life is either a daring adventure or nothing at all.", author: "Helen Keller" },
-  { text: "Many of life's failures are people who did not realize how close they were to success when they gave up.", author: "Thomas Edison" },
-  { text: "What you get by achieving your goals is not as important as what you become by achieving your goals.", author: "Henry David Thoreau" },
-  { text: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
-  { text: "It's not whether you get knocked down, it's whether you get up.", author: "Vince Lombardi" },
-  { text: "The most common way people give up their power is by thinking they don't have any.", author: "Alice Walker" },
-  { text: "You must be the change you wish to see in the world.", author: "Mahatma Gandhi" },
-  { text: "The journey of a thousand miles begins with one step.", author: "Lao Tzu" },
-];
-
 function loadSettings() {
   return new Promise((resolve) => {
     chrome.storage.sync.get(
@@ -45,6 +12,12 @@ function loadSettings() {
 function loadBg() {
   return new Promise((resolve) => {
     chrome.storage.local.get(['bgImage'], (data) => resolve(data.bgImage || null));
+  });
+}
+
+function loadWidgetPos() {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(['widgetX', 'widgetY'], (data) => resolve(data));
   });
 }
 
@@ -61,6 +34,10 @@ function saveBg(dataUrl) {
 
 function removeBg() {
   return new Promise((resolve) => chrome.storage.local.remove('bgImage', resolve));
+}
+
+function saveWidgetPos(x, y) {
+  chrome.storage.local.set({ widgetX: x, widgetY: y });
 }
 
 function toDateStr(date) {
@@ -118,32 +95,9 @@ function applyBackground(bgImage, bgSize, bgPosition) {
   }
 }
 
-function updateClock() {
-  const now  = new Date();
-  let h      = now.getHours();
-  const m    = String(now.getMinutes()).padStart(2, '0');
-  const ampm = h >= 12 ? 'PM' : 'AM';
-  h = h % 12 || 12;
-  clockEl.textContent = `${h}:${m}`;
-}
-
-function getGreeting(name) {
-  const h = new Date().getHours();
-  let part = 'Good evening';
-  if (h >= 5  && h < 12) part = 'Good morning';
-  else if (h >= 12 && h < 17) part = 'Good afternoon';
-  return name ? `${part}, ${name}.` : `${part}.`;
-}
-
-function getDailyQuote() {
-  const start   = new Date(new Date().getFullYear(), 0, 0);
-  const dayOfYear = Math.floor((Date.now() - start) / 86400000);
-  return QUOTES[dayOfYear % QUOTES.length];
-}
-
 function drawDonut(canvas, { progress, daysLeft, isExpired, placeholder }) {
   const dpr  = window.devicePixelRatio || 1;
-  const size = Math.min(window.innerWidth * 0.22, 220);
+  const size = Math.min(window.innerWidth * 0.14, 170);
   canvas.style.width  = size + 'px';
   canvas.style.height = size + 'px';
   canvas.width  = size * dpr;
@@ -204,37 +158,91 @@ function drawDonut(canvas, { progress, daysLeft, isExpired, placeholder }) {
   ctx.fillText(daysLeft === 1 ? 'day' : 'days', cx, cy + size * 0.14);
 }
 
-const clockEl      = document.getElementById('clock');
-const greetingEl   = document.getElementById('greeting');
-const canvas       = document.getElementById('donut');
-const eventLabel   = document.getElementById('event-label');
-const quoteTextEl  = document.getElementById('quote-text');
-const settingsBtn  = document.getElementById('settings-btn');
+// ── DOM refs ──────────────────────────────────────────────────────────────────
+
+const canvas        = document.getElementById('donut');
+const eventLabel    = document.getElementById('event-label');
+const widget        = document.getElementById('countdown-widget');
+const settingsBtn   = document.getElementById('settings-btn');
 const settingsPanel = document.getElementById('settings-panel');
-const overlay      = document.getElementById('settings-overlay');
-const nameInput    = document.getElementById('name-input');
-const dateInput    = document.getElementById('date-input');
+const overlay       = document.getElementById('settings-overlay');
+const dateInput     = document.getElementById('date-input');
 const eventNameInput = document.getElementById('event-name-input');
-const saveBtn      = document.getElementById('save-btn');
-const cancelBtn    = document.getElementById('cancel-btn');
-const bgInput      = document.getElementById('bg-input');
-const removeBgBtn  = document.getElementById('remove-bg-btn');
-const bgControls   = document.getElementById('bg-controls');
-const bgSizeSelect = document.getElementById('bg-size');
-const bgPosSelect  = document.getElementById('bg-position');
-const swatches     = document.querySelectorAll('.color-swatch');
-const customColor  = document.getElementById('custom-color');
+const saveBtn       = document.getElementById('save-btn');
+const cancelBtn     = document.getElementById('cancel-btn');
+const bgInput       = document.getElementById('bg-input');
+const removeBgBtn   = document.getElementById('remove-bg-btn');
+const bgControls    = document.getElementById('bg-controls');
+const bgSizeSelect  = document.getElementById('bg-size');
+const bgPosSelect   = document.getElementById('bg-position');
+const swatches      = document.querySelectorAll('.color-swatch');
+const customColor   = document.getElementById('custom-color');
 
 let currentSettings  = {};
 let pendingBgDataUrl = null;
 let removingBg       = false;
 let selectedColor    = DEFAULT_ACCENT;
 
+// ── Widget drag and drop ──────────────────────────────────────────────────────
+
+let widgetX = 0;
+let widgetY = 0;
+
+function placeWidget(x, y) {
+  const ww = widget.offsetWidth  || 170;
+  const wh = widget.offsetHeight || 200;
+  x = Math.max(0, Math.min(x, window.innerWidth  - ww));
+  y = Math.max(0, Math.min(y, window.innerHeight - wh));
+  widgetX = x;
+  widgetY = y;
+  widget.style.left = x + 'px';
+  widget.style.top  = y + 'px';
+}
+
+function defaultWidgetPos() {
+  const ww = widget.offsetWidth  || 170;
+  const wh = widget.offsetHeight || 200;
+  return {
+    x: window.innerWidth  - ww - 72,
+    y: (window.innerHeight - wh) / 2,
+  };
+}
+
+(function initDrag() {
+  let dragging   = false;
+  let startMouseX, startMouseY, startWidgetX, startWidgetY;
+
+  widget.addEventListener('mousedown', (e) => {
+    if (settingsPanel.classList.contains('visible')) return;
+    dragging    = true;
+    startMouseX = e.clientX;
+    startMouseY = e.clientY;
+    startWidgetX = widgetX;
+    startWidgetY = widgetY;
+    widget.classList.add('dragging');
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const dx = e.clientX - startMouseX;
+    const dy = e.clientY - startMouseY;
+    placeWidget(startWidgetX + dx, startWidgetY + dy);
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    widget.classList.remove('dragging');
+    saveWidgetPos(widgetX, widgetY);
+  });
+})();
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
 function render(settings) {
   currentSettings = settings;
-  const { targetDate, label, savedDate, userName } = settings;
-
-  greetingEl.textContent = getGreeting(userName);
+  const { targetDate, label, savedDate } = settings;
 
   if (!targetDate) {
     drawDonut(canvas, { placeholder: true });
@@ -254,21 +262,27 @@ function render(settings) {
 }
 
 async function init() {
-  const [settings, bgImage] = await Promise.all([loadSettings(), loadBg()]);
+  const [settings, bgImage, pos] = await Promise.all([
+    loadSettings(), loadBg(), loadWidgetPos(),
+  ]);
+
   applyAccent(settings.accentColor);
   selectedColor = settings.accentColor || DEFAULT_ACCENT;
   render(settings);
   applyBackground(bgImage, settings.bgSize, settings.bgPosition);
 
-  const quote = getDailyQuote();
-  quoteTextEl.textContent = `"${quote.text}" — ${quote.author}`;
-
-  updateClock();
-  setInterval(() => {
-    updateClock();
-    greetingEl.textContent = getGreeting(currentSettings.userName);
-  }, 30000);
+  // Place widget after first render so offsetWidth is available
+  requestAnimationFrame(() => {
+    if (pos.widgetX != null && pos.widgetY != null) {
+      placeWidget(pos.widgetX, pos.widgetY);
+    } else {
+      const d = defaultWidgetPos();
+      placeWidget(d.x, d.y);
+    }
+  });
 }
+
+// ── Settings panel ────────────────────────────────────────────────────────────
 
 function showBgControls(show) {
   bgControls.classList.toggle('hidden', !show);
@@ -287,7 +301,6 @@ function setActiveColor(color) {
 function openSettings() {
   pendingBgDataUrl = null;
   removingBg = false;
-  nameInput.value      = currentSettings.userName || '';
   dateInput.value      = currentSettings.targetDate || '';
   eventNameInput.value = currentSettings.label || '';
   bgSizeSelect.value   = currentSettings.bgSize || 'cover';
@@ -329,13 +342,11 @@ bgInput.addEventListener('change', (e) => {
 });
 
 bgSizeSelect.addEventListener('change', () => {
-  const src = pendingBgDataUrl || null;
-  if (src) applyBackground(src, bgSizeSelect.value, bgPosSelect.value);
+  if (pendingBgDataUrl) applyBackground(pendingBgDataUrl, bgSizeSelect.value, bgPosSelect.value);
 });
 
 bgPosSelect.addEventListener('change', () => {
-  const src = pendingBgDataUrl || null;
-  if (src) applyBackground(src, bgSizeSelect.value, bgPosSelect.value);
+  if (pendingBgDataUrl) applyBackground(pendingBgDataUrl, bgSizeSelect.value, bgPosSelect.value);
 });
 
 removeBgBtn.addEventListener('click', () => {
@@ -350,35 +361,43 @@ overlay.addEventListener('click', closeSettings);
 cancelBtn.addEventListener('click', closeSettings);
 
 saveBtn.addEventListener('click', async () => {
-  const date = dateInput.value;
-  if (!date) return;
+  try {
+    const date = dateInput.value;
 
-  await saveSettings({
-    targetDate:  date,
-    label:       eventNameInput.value.trim(),
-    userName:    nameInput.value.trim(),
-    bgSize:      bgSizeSelect.value,
-    bgPosition:  bgPosSelect.value,
-    accentColor: selectedColor,
-  });
+    if (date) {
+      await saveSettings({
+        targetDate:  date,
+        label:       eventNameInput.value.trim(),
+        bgSize:      bgSizeSelect.value,
+        bgPosition:  bgPosSelect.value,
+        accentColor: selectedColor,
+      });
+    } else {
+      await chrome.storage.sync.set({ accentColor: selectedColor });
+    }
 
-  if (removingBg) {
-    await removeBg();
-    applyBackground(null);
-  } else if (pendingBgDataUrl) {
-    await saveBg(pendingBgDataUrl);
-    applyBackground(pendingBgDataUrl, bgSizeSelect.value, bgPosSelect.value);
-  } else {
-    const bgImage = await loadBg();
-    applyBackground(bgImage, bgSizeSelect.value, bgPosSelect.value);
+    if (removingBg) {
+      await removeBg();
+      applyBackground(null);
+    } else if (pendingBgDataUrl) {
+      await saveBg(pendingBgDataUrl);
+      applyBackground(pendingBgDataUrl, bgSizeSelect.value, bgPosSelect.value);
+    } else {
+      const bgImage = await loadBg();
+      applyBackground(bgImage, bgSizeSelect.value, bgPosSelect.value);
+    }
+
+    const settings = await loadSettings();
+    render(settings);
+  } finally {
+    closeSettings();
   }
-
-  const settings = await loadSettings();
-  render(settings);
-  closeSettings();
 });
 
-document.getElementById('search-form').addEventListener('submit', () => {});
-window.addEventListener('resize', () => render(currentSettings));
+window.addEventListener('resize', () => {
+  render(currentSettings);
+  const d = defaultWidgetPos();
+  placeWidget(widgetX || d.x, widgetY || d.y);
+});
 
 init();
