@@ -1,14 +1,7 @@
 :root {
-  --bg: #0f0f13;
-  --surface: #1c1c24;
-  --border: #2e2e3a;
-  --text: #e8e8f0;
-  --text-muted: #7a7a90;
   --accent: #7c6ef2;
   --accent-light: #a99ff8;
-  --track: #2a2a38;
-  --search-bg: #1c1c24;
-  --radius: 16px;
+  --radius: 18px;
 }
 
 *, *::before, *::after {
@@ -20,41 +13,88 @@
 html, body {
   width: 100%;
   height: 100%;
-  background: var(--bg);
-  color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   overflow: hidden;
+  color: #fff;
+  background: radial-gradient(ellipse at 50% 0%, #1e1040 0%, #080810 65%);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ── Background overlay (dims vision board for legibility) ── */
+#bg-overlay {
+  position: fixed;
+  inset: 0;
+  background: transparent;
+  transition: background 0.5s;
+  pointer-events: none;
+  z-index: 0;
+}
+
+body.has-bg #bg-overlay {
+  background: rgba(0, 0, 0, 0.38);
 }
 
 /* ── Layout ── */
 main {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 36px;
+  gap: 32px;
   height: 100vh;
 }
 
-/* ── Donut ── */
+/* ── Clock & greeting ── */
+#clock-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+#clock {
+  font-size: clamp(5rem, 12vw, 9rem);
+  font-weight: 200;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, 0.3);
+}
+
+#greeting {
+  font-size: clamp(1rem, 2.2vw, 1.35rem);
+  font-weight: 300;
+  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Countdown section ── */
 #countdown-section {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 #donut {
   display: block;
+  filter: drop-shadow(0 4px 24px rgba(0, 0, 0, 0.25));
 }
 
 #event-label {
-  font-size: 1rem;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.65);
+  letter-spacing: 0.03em;
   text-align: center;
-  max-width: 280px;
+  max-width: 300px;
   min-height: 1.4em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Search bar ── */
@@ -62,24 +102,27 @@ main {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: var(--search-bg);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 999px;
-  padding: 12px 20px;
-  width: 480px;
-  max-width: 90vw;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  padding: 13px 22px;
+  width: 460px;
+  max-width: 88vw;
+  transition: background 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
 .search-bar:focus-within {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(124, 110, 242, 0.18);
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.35);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.07);
 }
 
 .search-icon {
-  width: 18px;
-  height: 18px;
-  color: var(--text-muted);
+  width: 17px;
+  height: 17px;
+  color: rgba(255, 255, 255, 0.55);
   flex-shrink: 0;
 }
 
@@ -88,13 +131,34 @@ main {
   background: transparent;
   border: none;
   outline: none;
-  color: var(--text);
-  font-size: 1rem;
+  color: #fff;
+  font-size: 0.95rem;
   caret-color: var(--accent);
 }
 
 .search-bar input::placeholder {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Daily quote ── */
+#quote-bar {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1;
+  text-align: center;
+  max-width: 520px;
+  width: 90vw;
+  pointer-events: none;
+}
+
+#quote-text {
+  font-size: 0.82rem;
+  font-style: italic;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.02em;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.5);
 }
 
 /* ── Settings button ── */
@@ -102,44 +166,44 @@ main {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.5);
   transition: color 0.2s, background 0.2s, border-color 0.2s;
   z-index: 10;
 }
 
 #settings-btn:hover {
-  color: var(--text);
-  background: var(--border);
-  border-color: var(--accent);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.3);
 }
 
 #settings-btn svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 /* ── Settings overlay ── */
 #settings-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 20;
-  transition: opacity 0.2s;
 }
 
-#settings-overlay.hidden {
-  display: none;
-}
+#settings-overlay.hidden { display: none; }
 
 /* ── Settings panel ── */
 #settings-panel {
@@ -147,16 +211,20 @@ main {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0.97);
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: rgba(12, 10, 22, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--radius);
   padding: 32px;
-  width: 340px;
-  max-width: 90vw;
+  width: 360px;
+  max-width: 92vw;
+  max-height: 88vh;
+  overflow-y: auto;
   z-index: 30;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s, transform 0.2s;
@@ -168,68 +236,202 @@ main {
   transform: translate(-50%, -50%) scale(1);
 }
 
-#settings-panel.hidden {
-  display: none;
-}
+#settings-panel.hidden { display: none; }
 
 #settings-panel h2 {
-  font-size: 1.1rem;
+  font-size: 1rem;
   font-weight: 600;
-  color: var(--text);
-  margin-bottom: 4px;
+  color: #fff;
+  letter-spacing: 0.01em;
+  margin-bottom: 6px;
 }
 
-#settings-panel label {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  letter-spacing: 0.05em;
+#settings-panel label,
+#settings-panel > span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  letter-spacing: 0.07em;
   text-transform: uppercase;
-  margin-bottom: -6px;
+  margin-bottom: -4px;
 }
 
 #settings-panel input[type="text"],
 #settings-panel input[type="date"] {
-  background: var(--bg);
-  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 10px;
   padding: 10px 14px;
-  color: var(--text);
-  font-size: 0.95rem;
+  color: #fff;
+  font-size: 0.92rem;
   outline: none;
   width: 100%;
   transition: border-color 0.2s;
   color-scheme: dark;
 }
 
+#settings-panel input::placeholder {
+  color: rgba(255, 255, 255, 0.25);
+}
+
 #settings-panel input:focus {
   border-color: var(--accent);
 }
 
+/* ── Vision board upload ── */
+.bg-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bg-upload-btn {
+  flex: 1;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px dashed rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.2s, color 0.2s;
+}
+
+.bg-upload-btn:hover {
+  border-color: var(--accent);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+#bg-input { display: none; }
+
+#remove-bg-btn {
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 0.82rem;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+#remove-bg-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+#remove-bg-btn.hidden { display: none; }
+
+/* ── BG fit/position controls ── */
+.bg-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.bg-controls.hidden { display: none; }
+
+.bg-control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.bg-control-row span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  white-space: nowrap;
+}
+
+.bg-control-row select {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  padding: 7px 10px;
+  color: #fff;
+  font-size: 0.88rem;
+  outline: none;
+  cursor: pointer;
+  color-scheme: dark;
+  transition: border-color 0.2s;
+}
+
+.bg-control-row select:focus {
+  border-color: var(--accent);
+}
+
+/* ── Color picker ── */
+.color-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.color-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s;
+}
+
+.color-swatch:hover { transform: scale(1.18); }
+
+.color-swatch.active {
+  border-color: #fff;
+  transform: scale(1.18);
+}
+
+#custom-color {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  padding: 0;
+  cursor: pointer;
+  overflow: hidden;
+  background: transparent;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+#custom-color:hover { transform: scale(1.18); }
+#custom-color.active {
+  border-color: #fff;
+  transform: scale(1.18);
+}
+
+/* ── Settings actions ── */
 .settings-actions {
   display: flex;
   gap: 10px;
-  margin-top: 6px;
+  margin-top: 8px;
 }
 
 .settings-actions button {
   flex: 1;
-  padding: 10px;
+  padding: 11px;
   border-radius: 10px;
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   transition: background 0.2s, border-color 0.2s;
 }
 
 #cancel-btn {
   background: transparent;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.45);
 }
 
 #cancel-btn:hover {
-  background: var(--border);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 #save-btn {

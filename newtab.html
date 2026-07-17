@@ -7,7 +7,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div id="bg-overlay"></div>
+
   <main>
+    <div id="clock-block">
+      <div id="clock">--:--</div>
+      <div id="greeting"></div>
+    </div>
+
     <div id="countdown-section">
       <canvas id="donut"></canvas>
       <p id="event-label"></p>
@@ -23,22 +30,69 @@
     </form>
   </main>
 
-  <!-- Settings panel -->
+  <div id="quote-bar">
+    <span id="quote-text"></span>
+  </div>
+
   <div id="settings-overlay" class="hidden"></div>
   <div id="settings-panel" class="hidden">
-    <h2>Set Countdown</h2>
-    <label for="event-name-input">Event name</label>
+    <h2>Customize DayZero</h2>
+
+    <label for="name-input">Your name</label>
+    <input type="text" id="name-input" placeholder="e.g. Athulya" maxlength="30" />
+
+    <label for="event-name-input">Goal name</label>
     <input type="text" id="event-name-input" placeholder="e.g. Trip to Japan" maxlength="40" />
+
     <label for="date-input">Target date</label>
     <input type="date" id="date-input" />
+
+    <label>Vision board</label>
+    <div class="bg-upload-row">
+      <label class="bg-upload-btn" for="bg-input">Choose image</label>
+      <input type="file" id="bg-input" accept="image/png,image/jpeg,image/webp" />
+      <button id="remove-bg-btn" type="button" class="hidden">Remove</button>
+    </div>
+    <div class="bg-controls hidden" id="bg-controls">
+      <div class="bg-control-row">
+        <span>Fit</span>
+        <select id="bg-size">
+          <option value="cover">Cover</option>
+          <option value="contain">Contain</option>
+          <option value="100% 100%">Stretch</option>
+          <option value="auto">Actual size</option>
+        </select>
+      </div>
+      <div class="bg-control-row">
+        <span>Position</span>
+        <select id="bg-position">
+          <option value="center">Center</option>
+          <option value="top">Top</option>
+          <option value="bottom">Bottom</option>
+          <option value="left">Left</option>
+          <option value="right">Right</option>
+        </select>
+      </div>
+    </div>
+
+    <label>Widget color</label>
+    <div class="color-row">
+      <button class="color-swatch" data-color="#7c6ef2" style="background:#7c6ef2" title="Violet"></button>
+      <button class="color-swatch" data-color="#e05c8a" style="background:#e05c8a" title="Rose"></button>
+      <button class="color-swatch" data-color="#f5a623" style="background:#f5a623" title="Amber"></button>
+      <button class="color-swatch" data-color="#4caf82" style="background:#4caf82" title="Mint"></button>
+      <button class="color-swatch" data-color="#3a9de1" style="background:#3a9de1" title="Sky"></button>
+      <button class="color-swatch" data-color="#e14f4f" style="background:#e14f4f" title="Red"></button>
+      <input type="color" id="custom-color" title="Custom color" />
+    </div>
+
     <div class="settings-actions">
       <button id="cancel-btn" type="button">Cancel</button>
       <button id="save-btn" type="button">Save</button>
     </div>
   </div>
 
-  <!-- Gear button -->
-  <button id="settings-btn" title="Settings">
+  <button id="settings-btn" title="Customize">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
       <circle cx="12" cy="12" r="3"/>
       <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
