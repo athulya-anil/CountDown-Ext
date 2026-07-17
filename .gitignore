@@ -1,0 +1,5 @@
+.claude/
+.claude.json
+.claude.json.backup
+generate-icons.js
+make-icons.html
